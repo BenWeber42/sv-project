@@ -6,7 +6,7 @@ class
 
 feature
 
-	lst: SIMPLE_ARRAY [INTEGER]
+    lst: SIMPLE_ARRAY [INTEGER]
 
 feature
 
@@ -177,7 +177,7 @@ feature
 			invariant
 				is_open
 				inv
-				-- ADD MISSING LOOP INVARIANT(S)
+    		    zz * y + xx = xx.old_
 			until
 				xx < y
 			loop
