@@ -2,7 +2,7 @@ note
     description: "Verify the features by adding the missing loop invariants and postconditions."
 
 class
-	SV_AUTOPROOF
+    SV_AUTOPROOF
 
 feature
 
@@ -24,7 +24,7 @@ feature
 			invariant
 				x.is_wrapped
 				x.count = x.count.old_
-				-- ADD MISSING LOOP INVARIANT(S)
+    		    across 1 |..| (k - 1) as i all x.sequence [i.item] = 0 end
 			until
 				k > x.count
 			loop
@@ -57,7 +57,7 @@ feature
 			invariant
 				a.is_wrapped and b.is_wrapped
 				a.count = a.count.old_
-            across 1 |..| (k - 1) as i all x.sequence [i.item] = 0 end
+				-- ADD MISSING LOOP INVARIANT(S)
 			until
 				k > a.count
 			loop
