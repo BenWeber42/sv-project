@@ -57,7 +57,7 @@ feature
 			invariant
 				a.is_wrapped and b.is_wrapped
 				a.count = a.count.old_
-				-- ADD MISSING LOOP INVARIANT(S)
+            across 1 |..| (k - 1) as i all x.sequence [i.item] = 0 end
 			until
 				k > a.count
 			loop
