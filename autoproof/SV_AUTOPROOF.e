@@ -57,7 +57,9 @@ feature
 			invariant
 				a.is_wrapped and b.is_wrapped
 				a.count = a.count.old_
-				-- ADD MISSING LOOP INVARIANT(S)
+                a.count = b.count
+                across 1 |..| a.count as i all a.sequence[i.item] = 0 end
+    		    across 1 |..| (k - 1) as i all (i.item \\ 3 = 0) implies b.sequence [i.item] = 1 end
 			until
 				k > a.count
 			loop
