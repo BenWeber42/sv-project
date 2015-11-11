@@ -208,7 +208,7 @@ feature
 
 	paly (a: SIMPLE_ARRAY [INTEGER]): BOOLEAN
 		note
-			explicit: wrapping
+			explicit: wrapping -- TODO: do we need to add pre or post conditions because of this?
 		require
 			a /= Void
 		local
