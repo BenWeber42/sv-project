@@ -137,7 +137,7 @@ feature
 feature
 
 	search (v: INTEGER): BOOLEAN
-		note
+    	note
 			status: impure
 		require
 			lst.is_wrapped
@@ -149,7 +149,9 @@ feature
 				k := lst.count
 				Result := False
 			invariant
-				-- ADD MISSING LOOP INVARIANT(S)
+                k <= lst. count
+                Result implies lst.sequence[k] = v
+                not Result implies across (k + 1) |..| lst.count as i all lst.sequence [i.item] /= v end
 			until
 				Result or k < 1
 			loop
@@ -162,7 +164,7 @@ feature
 				k - if Result then 1 else 0 end
 			end
 		ensure
-			-- TODO: verify correctness of post conditions in search
+			-- TODO: verify correctness of post conditions in search (don't forget to adjust invariant if necessary if post condition needs to be changed)
             unmodified_count: lst.count = old lst.count
             unmodified_lst: across 1 |..| lst.count as i all lst.sequence [i.item] = (old lst.sequence) [i.item] end
             unmodified_v: v = old v
