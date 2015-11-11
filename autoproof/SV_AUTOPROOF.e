@@ -114,7 +114,12 @@ feature
 			invariant
 				lst.is_wrapped
 				lst.sequence.count = lst.sequence.old_.count
-				-- ADD MISSING LOOP INVARIANT(S)
+                1 <= x
+                y <= lst.count
+                y = lst.count - x + 1
+                across 1 |..| (x - 1) as i all lst.sequence [i.item] = lst.sequence.old_ [lst.count - i.item + 1] end
+                across (y + 1) |..| lst.count as i all lst.sequence [i.item] = lst.sequence.old_ [lst.count - i.item + 1] end
+                across x |..| y as i all lst.sequence [i.item] = lst.sequence.old_ [i.item] end
 			until
 				y <= x
 			loop
