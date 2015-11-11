@@ -162,7 +162,11 @@ feature
 				k - if Result then 1 else 0 end
 			end
 		ensure
-			-- ADD MISSING POSTCONDITION(S)
+			-- TODO: verify correctness of post conditions in search
+            unmodified_count: lst.count = old lst.count
+            unmodified_lst: across 1 |..| lst.count as i all lst.sequence [i.item] = (old lst.sequence) [i.item] end
+            unmodified_v: v = old v
+    		correctness: lst.sequence.has (v) = Result
 		end
 
 
