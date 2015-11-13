@@ -1,0 +1,1 @@
+2015/11/13 <mohlerm> Added basic quicksort implementation, however we should replace most of the return types by call-by-value (i simply have no clue how to do this in boogey)
