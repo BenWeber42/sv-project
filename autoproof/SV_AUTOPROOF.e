@@ -11,7 +11,7 @@ feature
 feature
 
     wipe (x: SIMPLE_ARRAY [INTEGER])
-	    note
+        note
 	    	explicit: wrapping
 		require
 			x /= Void
@@ -224,6 +224,7 @@ feature
                 y = a.count - x + 1
                 Result = across 1 |..| (x - 1) as i all a.sequence [i.item] = a.sequence [a.count - i.item + 1] end
                 not Result implies a.sequence [x - 1] /= a.sequence [y + 1]
+                -- do we need another invariant with Result implies?
 			until
 				x >= y or not Result
 			loop
@@ -237,8 +238,11 @@ feature
 			end
 		ensure
             -- TODO: verify correctness of post conditions in paly (don't forget to adjust invariant if necessary if post condition needs to be changed)
-            -- TODO: add post conditions that a wasn't modified? (don't forget to adjust invariant if necessary if post condition needs to be changed)
             Result = across 1 |..| a.count as i all a.sequence [i.item] = a.sequence [a.count - i.item + 1] end
+            -- TODO: add post conditions that a wasn't modified? (don't forget to adjust invariant if necessary if post condition needs to be changed)
+            -- ATTEMPT: make sure a did not get modified, does this really need another invariant?
+            a.count = (old a).count
+            across 1 |..| a.count as i all a.sequence [i.item] = (old a).sequence [i.item] end
 		end
 
 
