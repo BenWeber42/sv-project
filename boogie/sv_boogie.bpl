@@ -13,39 +13,44 @@ function has_small_elements(arr: [int]int): bool
 }
 
 // Recursive implementation of quicksort
-procedure quicksort(arr: [int]int, lo: int, hi: int) returns (new_arr: [int]int) {
+procedure quicksort(lo: int, hi: int) returns ()
+  modifies a;
+{
   var p: int;
   if (lo < hi) {
-    call p :=  partition(arr, lo, hi);
-    call new_arr := quicksort(arr, lo, p-1);
-    call new_arr := quicksort(new_arr, p+1, lo);
+    call p :=  partition(lo, hi);
+    call quicksort(lo, p-1);
+    call quicksort(p+1, lo);
   }
 }
 // helper function for quicksort to partition the array
-procedure partition(arr: [int]int, lo:int, hi: int) returns (k: int) {
+procedure partition(lo:int, hi: int) returns (p: int)
+  modifies a;
+{
   var pivot, i,j,temp: int;
-  pivot := arr[hi];
+  pivot := a[hi];
   i := lo;
   j := lo;
   while(j <= hi-1) {
-    if(arr[j] <= pivot) {
+    if(a[j] <= pivot) {
       // swap
-      call arr := swap(arr, i,j);
+      call swap(i,j);
       i := i+1;
     }
   }
-  call arr := swap(arr, i, hi);
-  k := i;
+  call swap(i, hi);
+  p := i;
   return;
 }
 
 // swap arr[a] with arr[b]
-procedure swap(arr: [int]int, a:int, b:int) returns (new_arr: [int]int) {
+procedure swap(x:int, y:int) returns ()
+  modifies a;
+{
   var temp: int;
-  new_arr := arr;
-  temp := new_arr[a];
-  new_arr[a] := new_arr[b];
-  new_arr[b] := temp;
+  temp := a[x];
+  a[x] := a[y];
+  a[y] := temp;
 }
 
 // Sorts 'a' using bucket sort or quick sort, as determined by has_small_elements(a)
@@ -56,11 +61,10 @@ procedure sort() returns ()
   {
       // sort 'a' using bucket sort
       // TODO: replace with bucket sort later
-      call a := quicksort(a, 0, N-1);
+      call quicksort(0, N-1);
   } else
   {
       // sort 'a' using quick sort
-      call a := quicksort(a, 0, N-1);
+      call quicksort(0, N-1);
   }
 }
-
