@@ -25,7 +25,12 @@ procedure quicksort(lo: int, hi: int) returns ()
 }
 // helper function for quicksort to partition the array
 procedure partition(lo:int, hi: int) returns (p: int)
+  requires 0 <= lo && hi <= N;
   modifies a;
+  ensures lo <= p && hi > p;
+  ensures (forall k: int, j: int :: lo <= k && k < p && p <= j && j < hi  ==>  a[k] <= a[j]);
+  ensures (forall k: int :: lo <= k && k < p  ==>  a[k] <= old(a)[lo]);
+  ensures (forall k: int :: p <= k && k < hi  ==>  old(a)[lo] <= a[k]);
 {
   var pivot, i,j,temp: int;
   pivot := a[hi];
@@ -45,12 +50,20 @@ procedure partition(lo:int, hi: int) returns (p: int)
 
 // swap arr[a] with arr[b]
 procedure swap(x:int, y:int) returns ()
+  requires 0 <= x && y <= N;
   modifies a;
+  ensures a[x] == old(a)[y] && a[y] == old(a)[x];
 {
   var temp: int;
   temp := a[x];
   a[x] := a[y];
   a[y] := temp;
+}
+
+procedure bucketsort(N: int) returns ()
+  modifies a;
+{
+  
 }
 
 // Sorts 'a' using bucket sort or quick sort, as determined by has_small_elements(a)
@@ -60,8 +73,7 @@ procedure sort() returns ()
   if (has_small_elements(a))
   {
       // sort 'a' using bucket sort
-      // TODO: replace with bucket sort later
-      call quicksort(0, N-1);
+      call bucketsort(N);
   } else
   {
       // sort 'a' using quick sort
