@@ -60,10 +60,40 @@ procedure swap(x:int, y:int) returns ()
   a[y] := temp;
 }
 
+// bucket sort implementation using 3 buckets
 procedure bucketsort(N: int) returns ()
   modifies a;
 {
-  
+  // model buckets as three different integer maps
+  // this is fine according to the FAW
+  var bucket1, bucket2, bucket3: [int]int;
+  // backup a and n to be able to use it for quicksort
+  var old_a: [int]int;
+  var old_N,i: int;
+  old_a = a;
+  old_N = N;
+  N = N/3;
+  i = 0;
+  while(i < N) {
+    // add elements to individual buckets
+  }
+  a = bucket1;
+  call quicksort(0,N-1);
+  bucket1 = a;
+  a = bucket2;
+  call quicksort(0,N-1);
+  bucket2 = a;
+  a = bucket3;
+  call quicksort(0,N-1);
+  bucket3 = a;
+  bucketmerge(bucket1, bucket2, bucket3);
+}
+
+// helper function to merge the 3 buckets
+procedure bucketmerge(bucket1: [int]int, bucket2: [int]int, bucket3: [int]int) returns ()
+  modifies a;
+{
+
 }
 
 // Sorts 'a' using bucket sort or quick sort, as determined by has_small_elements(a)
