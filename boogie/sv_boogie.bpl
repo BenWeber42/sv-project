@@ -1,4 +1,6 @@
 // Introduce a constant 'N' and postulate that it is non-negative
+// TODO: should we make N var instead of const?
+// or use the bucket sort individual length as parameter for quicksort?
 const N: int;
 axiom 0 <= N;
 
@@ -62,38 +64,83 @@ procedure swap(x:int, y:int) returns ()
 
 // bucket sort implementation using 3 buckets
 procedure bucketsort(N: int) returns ()
+  requires has_small_elements(a);
   modifies a;
 {
   // model buckets as three different integer maps
-  // this is fine according to the FAW
+  // this is fine according to the FAQ
   var bucket1, bucket2, bucket3: [int]int;
+  var size1, size2, size3: int;
   // backup a and n to be able to use it for quicksort
   var old_a: [int]int;
   var old_N,i: int;
-  old_a = a;
-  old_N = N;
-  N = N/3;
-  i = 0;
-  while(i < N) {
-    // add elements to individual buckets
+
+  size1 := 0;
+  size2 := 0;
+  size3 := 0;
+
+  old_a := a;
+  old_N := N;
+  //N := xxx;
+  // TODO: what should we do with N? See line 2
+  i := 0;
+  while(i < N)
+  {
+    if(a[i] < -N)
+    {
+      bucket1[i] := a[i];
+      size1 := size1+1;
+    }
+    if(a[i] >= -N && a[i] < N)
+    {
+      bucket2[i] := a[i];
+      size2 := size2+1;
+    }
+    if(a[i] >= N)
+    {
+      bucket3[i] := a[i];
+      size3 := size3+1;
+    }
+    i := i+1;
   }
-  a = bucket1;
-  call quicksort(0,N-1);
-  bucket1 = a;
-  a = bucket2;
-  call quicksort(0,N-1);
-  bucket2 = a;
-  a = bucket3;
-  call quicksort(0,N-1);
-  bucket3 = a;
-  bucketmerge(bucket1, bucket2, bucket3);
+  a := bucket1;
+  call quicksort(0,size1-1);
+  bucket1 := a;
+  a := bucket2;
+  call quicksort(0,size2-1);
+  bucket2 := a;
+  a := bucket3;
+  call quicksort(0,size3-1);
+  bucket3 := a;
+  call bucketmerge(bucket1, bucket2, bucket3, size1, size2, size3);
 }
 
 // helper function to merge the 3 buckets
-procedure bucketmerge(bucket1: [int]int, bucket2: [int]int, bucket3: [int]int) returns ()
+procedure bucketmerge(bucket1: [int]int, bucket2: [int]int, bucket3: [int]int, size1: int, size2: int, size3: int) returns ()
   modifies a;
 {
-
+  var counter,i : int;
+  counter := 0;
+  i :=0;
+  while(i < size1)
+  {
+    a[counter+i] := bucket1[i];
+    i := i+1;
+  }
+  counter := i;
+  i := 0;
+  while(i < size2)
+  {
+    a[counter+i] := bucket2[i];
+    i := i+1;
+  }
+  counter := i;
+  i := 0;
+  while(i < size3)
+  {
+    a[counter+i] := bucket3[i];
+    i := i+1;
+  }
 }
 
 // Sorts 'a' using bucket sort or quick sort, as determined by has_small_elements(a)
