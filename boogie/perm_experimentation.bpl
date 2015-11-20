@@ -1,8 +1,7 @@
 const N: int;
-axiom 0 <= N;
+axiom 10 <= N;
 
-const old_a: [int]int;
-var a, perm: [int]int;
+var a, old_a, perm: [int]int;
 
 function vi(i: int): bool
 {
@@ -11,16 +10,18 @@ function vi(i: int): bool
 
 function perm(a: [int]int): bool
 {
-  (forall i: int :: vi(i) ==> vi(a[i]))
+  // WARNING: doesn't work with:
+  // (forall i: int :: vi(i) ==> vi(a[i]))
+  (forall i: int :: vi(i) ==> 0 <= a[i] && a[i] < N)
   &&
-  (forall i, j: int :: vi(i) && vi(j) && i != j ==> a[i] != a[j])
+  (forall i, j: int :: 0 <= i && i < j && j < N ==> a[i] != a[j])
 }
 
 function perm_of(a, b, perm: [int]int): bool
 {
   perm(perm)
   &&
-  (forall i: int :: vi(i) ==> a[perm[i]] == b[i])
+  (forall i: int :: vi(i) ==> a[i] == b[perm[i]])
 }
 
 procedure init()
@@ -38,11 +39,12 @@ procedure init()
 
 procedure swap(i, j: int)
   requires perm_of(a, old_a, perm);
-  requires vi(i) && vi(j);
+  requires vi(i);
+  requires vi(j);
   modifies a, perm;
-  //ensures a[i] == old(a)[j];
-  //ensures a[j] == old(a)[i];
-  //ensures perm_of(a, old_a, perm);
+  ensures a[i] == old(a)[j];
+  ensures a[j] == old(a)[i];
+  ensures perm_of(a, old_a, perm);
 {
   var temp: int;
   
@@ -50,20 +52,20 @@ procedure swap(i, j: int)
   perm[i] := perm[j];
   perm[j] := temp; 
   
-  assert perm[i] == old(perm)[j];
-  assert perm[j] == old(perm)[i];
-  
-  assert (forall k: int :: vi(k) && k != i && k != j ==> perm[k] == old(perm)[k]);
-  
-  assert (forall k: int :: vi(k) ==> vi(perm[k]));
-  
-  //temp := a[i];
-  //a[i] := a[j];
-  //a[j] := temp;
+  temp := a[i];
+  a[i] := a[j];
+  a[j] := temp;
 }
 
 procedure sort()
   modifies a, perm;
+  ensures perm_of(a, old_a, perm);
 {
   call init();
+  call swap(3, 4);
+  call swap(5, 6);
+  call swap(7, 1);
+  call swap(3, 6);
+  call swap(1, 4);
 }
+
