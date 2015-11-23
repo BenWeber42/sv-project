@@ -203,7 +203,47 @@ procedure bucketsort()
   ensures perm_of(a, old_a, perm);
   ensures sorted(a, 0, N - 1);
 {
+  /*
+   * Choose buckets such that each bucket's range is
+   * [-3*N, -N), [-N, N) & [N, 3*N] resp.
+   *
+   * Furthermore choose b1 & b2 such that each bucket's indices is in
+   * [0, b1), [b1, b2), [b2, N] resp.
+   */
+  var b1, b2: int;
   
-
+  // do first bucket
+  call b1 := partition(0, N - 1, -N);
+  
+  assert b1 <= N;
+  
+  if (b1 == N) {
+    call quicksort(0, b1 - 1);
+    return;
+  }
+  
+  if (0 < b1) {
+    assert (forall k: int :: 0 <= k && k < b1 ==> a[k] < a[b1]);
+    call quicksort(0, b1 - 1);
+    // should probably generalize the semantics that establish
+    // in partition & quicksort that the respective blocks don't change their
+    // relationship to upper and lower limits.
+    assert (forall k: int :: 0 <= k && k < b1 ==> a[k] < a[b1]);
+  }
+  
+  //assert -N <= a[b1];
+  //assert (forall k: int :: 0 <= k && k < b1 ==> a[k] < -N);
+  assert (forall k: int :: 0 <= k && k < b1 ==> a[k] < a[b1]);
+  
+  // do second and third bucket
+  call b2 := partition(b1, N - 1, N);
+  
+  if (b1 < b2) {
+    call quicksort(b1, b2 - 1);
+  }
+  assert sorted(a, 0, b2 - 1);
+  if (b2 < N) {
+    call quicksort(b2, N - 1);
+  }
 }
 
