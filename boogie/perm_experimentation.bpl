@@ -112,14 +112,15 @@ procedure quicksort(lo, hi: int)
   }
   
   call p := partition(lo, hi - 1, a[hi]);
+       
+  call swap(p, hi);
   
   if (lo < p) {
     call quicksort(lo, p - 1);
   }
-  call quicksort(p, hi);
-  assert sorted(a, lo, p - 1);
-  assert sorted(a, p, hi);
-  //assert sorted(a, lo, hi);
+  if (p < hi) {
+    call quicksort(p + 1, hi);
+  }
 }
 
 procedure partition(lo, hi, pivot: int) returns (p: int)
@@ -129,13 +130,17 @@ procedure partition(lo, hi, pivot: int) returns (p: int)
   ensures perm_of(a, old_a, perm);
   ensures lo <= p && p <= hi + 1;
   ensures (forall k: int :: lo <= k && k < p ==> a[k] < pivot);
-  ensures (forall k: int :: p <= k && k <= lo ==> pivot <= a[k]);
+  ensures (forall k: int :: p <= k && k <= hi ==> pivot <= a[k]);
   ensures (forall k: int :: k < lo ==> a[k] == old(a)[k]);
   ensures (forall k: int :: hi < k ==> a[k] == old(a)[k]);
-  ensures (forall k: int :: lo <= k && k <= hi ==> old(a)[lo - 1] <= old(a)[k])
-       ==> (forall k: int :: lo <= k && k <= hi ==> a[lo - 1] <= a[k]);
-  ensures (forall k: int :: lo <= k && k <= hi ==> old(a)[k] <= old(a)[hi + 1])
-       ==> (forall k: int :: lo <= k && k <= hi ==> a[k] <= a[hi + 1]);
+  ensures (forall i: int :: i < lo ==> 
+    (forall k: int :: lo <= k && k <= hi ==> old(a)[i] <= old(a)[k])
+    ==> (forall k: int :: lo <= k && k <= hi ==> a[i] <= a[k])
+  );
+  ensures (forall i: int :: hi < i ==>
+    (forall k: int :: lo <= k && k <= hi ==> old(a)[k] <= old(a)[i])
+    ==> (forall k: int :: lo <= k && k <= hi ==> a[k] <= a[i])
+  );
 {
   var i, j: int;
   
@@ -150,10 +155,14 @@ procedure partition(lo, hi, pivot: int) returns (p: int)
    invariant (forall k: int :: i < k && k < j ==> a[k] == old(a)[k]);
    invariant (forall k: int :: k < lo ==> a[k] == old(a)[k]);
    invariant (forall k: int :: hi < k ==> a[k] == old(a)[k]);
-   invariant (forall k: int :: lo <= k && k <= hi ==> old(a)[lo - 1] <= old(a)[k])
-       ==> (forall k: int :: lo <= k && k <= hi ==> a[lo - 1] <= a[k]);
-   invariant (forall k: int :: lo <= k && k <= hi ==> old(a)[k] <= old(a)[hi + 1])
-       ==> (forall k: int :: lo <= k && k <= hi ==> a[k] <= a[hi + 1]);
+   invariant (forall l: int :: l < lo ==> 
+    (forall k: int :: lo <= k && k <= hi ==> old(a)[l] <= old(a)[k])
+    ==> (forall k: int :: lo <= k && k <= hi ==> a[l] <= a[k])
+   );
+   invariant (forall l: int :: hi < l ==>
+    (forall k: int :: lo <= k && k <= hi ==> old(a)[k] <= old(a)[l])
+    ==> (forall k: int :: lo <= k && k <= hi ==> a[k] <= a[l])
+   );
   {
     while (a[i] < pivot && i < j)
       invariant lo <= i && i <= j && j <= hi;
@@ -197,3 +206,4 @@ procedure bucketsort()
   
 
 }
+
