@@ -1,5 +1,6 @@
 const N: int;
 // TODO why this? and not 1 <= N?
+// works fine with 1 <= N though...
 axiom 10 <= N;
 
 var a, old_a, perm: [int]int;
@@ -41,13 +42,18 @@ function sorted(a: [int]int, lo, up: int): bool
 procedure init()
   modifies a, perm;
   ensures perm_of(a, old_a, perm);
+  ensures perm(perm); // TODO this is not necessary...why?
 {
   var k: int;
   k := 0;
   while (k < N)
+    invariant (forall i: int :: i < k && vi(i) ==> a[i] == old_a[perm[i]]);
+    invariant (forall i: int :: i < k && vi(i) ==> perm[i] == i);
+    invariant (forall i: int :: i < k && vi(i) ==> vi(perm[i]));
   {
     a[k] := old_a[k];
     perm[k] := k;
+    k := k + 1;
   }
 }
 /*
