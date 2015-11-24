@@ -5,11 +5,20 @@ axiom 10 <= N;
 
 var a, old_a, perm: [int]int;
 
+/*
+  Helper function:
+  Returns true iff i is element of [0,N-1]
+*/
 function vi(i: int): bool
 {
   0 <= i && i < N
 }
 
+/*
+  Returns true iff a is a valid permutation array
+  which means that the values of a are in [0,N-1]
+  and no value appears twice in a
+*/
 function perm(a: [int]int): bool
 {
   // WARNING: doesn't work with:
@@ -19,6 +28,10 @@ function perm(a: [int]int): bool
   (forall i, j: int :: 0 <= i && i < j && j < N ==> a[i] != a[j])
 }
 
+/*
+  Returns true iff perm describes a valid permutation
+  of a and b
+*/
 function perm_of(a, b, perm: [int]int): bool
 {
   perm(perm)
@@ -26,35 +39,41 @@ function perm_of(a, b, perm: [int]int): bool
   (forall i: int :: vi(i) ==> a[i] == b[perm[i]])
 }
 
-// Returns true iff the elements of 'arr' are small (i.e. values in the range -3N to +3N)
+/*
+  Returns true iff the elements of 'arr' are small
+  (i.e. values in the range -3N to +3N)
+*/
 function has_small_elements(arr: [int]int): bool
 {
   (forall i: int :: (0 <= i && i < N) ==> (-3 * N <= arr[i] && arr[i] <= 3 * N))
 }
 
-// Returns true iff the elements from a[lo] to a[hi] are sorted
+/*
+  Returns true iff the elements from a[lo] to a[hi] are sorted
+*/
 function sorted(a: [int]int, lo, up: int): bool
 {
   (forall i, j: int :: lo <= i && i <= j && j <= up ==> a[i] <= a[j])
 }
 
-
+/*
+  initializes a such that a is a permutation p (namely the identity) of old_a
+*/
 procedure init()
   modifies a, perm;
   ensures perm_of(a, old_a, perm);
-  ensures perm(perm); // TODO this is not necessary...why?
 {
   var k: int;
   k := 0;
   while (k < N)
     invariant (forall i: int :: i < k && vi(i) ==> a[i] == old_a[perm[i]]);
     invariant (forall i: int :: i < k && vi(i) ==> perm[i] == i);
-    invariant (forall i: int :: i < k && vi(i) ==> vi(perm[i]));
   {
     a[k] := old_a[k];
     perm[k] := k;
     k := k + 1;
   }
+  assert perm(perm);
 }
 /*
   swaps content of a at locations i and j
