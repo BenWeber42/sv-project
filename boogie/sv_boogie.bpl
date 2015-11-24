@@ -179,12 +179,16 @@ procedure quicksort(lo, hi: int)
   ensures (forall k: int :: k < lo ==> a[k] == old(a)[k]);
   // we don't modify anything above hi
   ensures (forall k: int :: hi < k ==> a[k] == old(a)[k]);
-  // every element in a between lo and high is larger than a[lo-1] (the largest element before lo)
-  ensures (forall k,i: int :: lo <= k && k <= hi ==> old(a)[lo - 1] <= old(a)[k])
-       ==> (forall k: int :: lo <= k && k <= hi ==> a[lo - 1] <= a[k]);
-  // every element in a between lo and high is smaller than a[hi+1] (the smallest element after hi)
-  ensures (forall k: int :: lo <= k && k <= hi ==> old(a)[k] <= old(a)[hi + 1])
-       ==> (forall k: int :: lo <= k && k <= hi ==> a[k] <= a[hi + 1]);
+  // all values between lo and hi are greater-equal all values below lo
+  ensures (forall i: int :: i < lo ==>
+   (forall k: int :: lo <= k && k <= hi ==> old(a)[i] <= old(a)[k])
+   ==> (forall k: int :: lo <= k && k <= hi ==> a[i] <= a[k])
+  );
+  // all values between lo and hi are smaller all values above hi
+  ensures (forall i: int :: hi < i ==>
+   (forall k: int :: lo <= k && k <= hi ==> old(a)[k] <= old(a)[i])
+   ==> (forall k: int :: lo <= k && k <= hi ==> a[k] <= a[i])
+  );
 {
   var p: int;
 
@@ -214,8 +218,6 @@ procedure quicksort(lo, hi: int)
 */
 procedure bucketsort()
   requires perm_of(a, old_a, perm);
-  // TODO: not sure if we need this, but won't hurt
-  requires has_small_elements(a);
   modifies a, perm;
   ensures perm_of(a, old_a, perm);
   ensures sorted(a, 0, N - 1);
@@ -241,18 +243,21 @@ procedure bucketsort()
     return;
   }
 
+  // b1 could still be 0, in this case the left most bucket is empty
+  // and we don't need to sort it
   if (0 < b1) {
     assert (forall k: int :: 0 <= k && k < b1 ==> a[k] < a[b1]);
     call quicksort(0, b1 - 1);
     // should probably generalize the semantics that establish
     // in partition & quicksort that the respective blocks don't change their
     // relationship to upper and lower limits.
-    assert (forall k: int :: 0 <= k && k < b1 ==> a[k] < a[b1]);
+    assert (forall k: int :: 0 <= k && k < b1 ==> a[k] <= a[b1]);
+    assert sorted(a, 0, b1 - 1);
   }
 
   //assert -N <= a[b1];
   //assert (forall k: int :: 0 <= k && k < b1 ==> a[k] < -N);
-  assert (forall k: int :: 0 <= k && k < b1 ==> a[k] < a[b1]);
+  //assert (forall k: int :: 0 <= k && k < b1 ==> a[k] < a[b1]);
 
   // do second and third bucket
   call b2 := partition(b1, N - 1, N);
