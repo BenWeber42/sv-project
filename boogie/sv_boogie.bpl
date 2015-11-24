@@ -50,10 +50,13 @@ function has_small_elements(arr: [int]int): bool
 
 /*
   Returns true iff the elements from a[lo] to a[hi] are sorted
+  Note, that an array of length 0 or 1 is trivially sorted
 */
-function sorted(a: [int]int, lo, up: int): bool
+function sorted(a: [int]int, lo, hi: int): bool
 {
-  (forall i, j: int :: lo <= i && i <= j && j <= up ==> a[i] <= a[j])
+  lo <= hi
+  &&
+  N > 0 ==> (forall i, j: int :: lo <= i && i <= j && j <= hi ==> a[i] <= a[j])
 }
 
 /*
@@ -256,48 +259,56 @@ procedure bucketsort()
    */
   var b1, b2: int;
 
-  // do first bucket
-  call b1 := partition(0, N - 1, -N);
+  // check if N is greater than zero because in this case the
+  // partitioning would not work
+  // it still verifies because
+  if(N > 0) {
+    // do first bucket
+    call b1 := partition(0, N - 1, -N);
 
-  assert b1 <= N;
+    assert b1 <= N;
 
-  // return with a single quicksort immediately if b1 is
-  // outside the range [0,N-1]
-  if (b1 == N) {
-    call quicksort(0, b1 - 1);
-    return;
+    // return with a single quicksort immediately if b1 is
+    // outside the range [0,N-1]
+    if (b1 == N) {
+      call quicksort(0, b1 - 1);
+      return;
+    }
+
+    // b1 could still be 0, in this case the left most bucket is empty
+    // and we don't need to sort it
+    if (0 < b1) {
+      assert (forall k: int :: 0 <= k && k < b1 ==> a[k] < a[b1]);
+      call quicksort(0, b1 - 1);
+      // should probably generalize the semantics that establish
+      // in partition & quicksort that the respective blocks don't change their
+      // relationship to upper and lower limits.
+      assert (forall k: int :: 0 <= k && k < b1 ==> a[k] <= a[b1]);
+      assert sorted(a, 0, b1 - 1);
+    }
+
+    //assert -N <= a[b1];
+    //assert (forall k: int :: 0 <= k && k < b1 ==> a[k] < -N);
+    //assert (forall k: int :: 0 <= k && k < b1 ==> a[k] < a[b1]);
+
+    // do second and third bucket
+    call b2 := partition(b1, N - 1, N);
+
+    if (b1 < b2) {
+      call quicksort(b1, b2 - 1);
+    }
+    assert sorted(a, 0, b2 - 1);
+    if (b2 < N) {
+      call quicksort(b2, N - 1);
+    }
+    assert sorted(a, 0, N - 1);
   }
-
-  // b1 could still be 0, in this case the left most bucket is empty
-  // and we don't need to sort it
-  if (0 < b1) {
-    assert (forall k: int :: 0 <= k && k < b1 ==> a[k] < a[b1]);
-    call quicksort(0, b1 - 1);
-    // should probably generalize the semantics that establish
-    // in partition & quicksort that the respective blocks don't change their
-    // relationship to upper and lower limits.
-    assert (forall k: int :: 0 <= k && k < b1 ==> a[k] <= a[b1]);
-    assert sorted(a, 0, b1 - 1);
-  }
-
-  //assert -N <= a[b1];
-  //assert (forall k: int :: 0 <= k && k < b1 ==> a[k] < -N);
-  //assert (forall k: int :: 0 <= k && k < b1 ==> a[k] < a[b1]);
-
-  // do second and third bucket
-  call b2 := partition(b1, N - 1, N);
-
-  if (b1 < b2) {
-    call quicksort(b1, b2 - 1);
-  }
-  assert sorted(a, 0, b2 - 1);
-  if (b2 < N) {
-    call quicksort(b2, N - 1);
-  }
-  assert sorted(a, 0, N - 1);
 }
 
-// Sorts 'a' using bucket sort or quick sort, as determined by has_small_elements(a)
+/*
+  Sorts 'a' using bucket sort or quick sort
+  as determined by has_small_elements(a)
+*/
 procedure sort() returns ()
   modifies a, perm;
   ensures perm_of(a, old_a, perm);
