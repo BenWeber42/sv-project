@@ -1,13 +1,10 @@
 const N: int;
-// TODO why this? and not 1 <= N?
-// works fine with 1 <= N though...
-axiom 10 <= N;
+axiom 0 <= N;
 
 var a, old_a, perm: [int]int;
 
 /*
-  Helper function:
-  Returns true iff i is element of [0,N-1]
+  Whether i is a valid index (i.e. i is in [0, N)).
 */
 function vi(i: int): bool
 {
@@ -15,13 +12,12 @@ function vi(i: int): bool
 }
 
 /*
-  Returns true iff a is a valid permutation array
-  which means that the values of a are in [0,N-1]
-  and no value appears twice in a
+  Whether a is a permutation array.
+  I.e. all elements are distinct and in the range [0, N)
 */
 function perm(a: [int]int): bool
 {
-  // WARNING: doesn't work with:
+  // WARNING: doesn't work with (timeout):
   // (forall i: int :: vi(i) ==> vi(a[i]))
   (forall i: int :: vi(i) ==> 0 <= a[i] && a[i] < N)
   &&
@@ -41,7 +37,7 @@ function perm_of(a, b, perm: [int]int): bool
 
 /*
   Returns true iff the elements of 'arr' are small
-  (i.e. values in the range -3N to +3N)
+  (i.e. all values in the range [-3N, +3N])
 */
 function has_small_elements(arr: [int]int): bool
 {
@@ -50,53 +46,36 @@ function has_small_elements(arr: [int]int): bool
 
 /*
   Returns true iff the elements from a[lo] to a[hi] are sorted
-  Note, that an array of length 0 or 1 is trivially sorted
+  Note: An array of length 1 or less is conservatively assumed not to be sorted.
 */
 function sorted(a: [int]int, lo, hi: int): bool
 {
-  lo <= hi
+  hi - lo >= 1
   &&
-  N > 0 ==> (forall i, j: int :: lo <= i && i <= j && j <= hi ==> a[i] <= a[j])
+  (forall i, j: int :: lo <= i && i <= j && j <= hi ==> a[i] <= a[j])
 }
 
-/*
-  initializes a such that a is a permutation p (namely the identity) of old_a
-*/
-procedure init()
-  modifies a, perm;
-  ensures perm_of(a, old_a, perm);
-{
-  var k: int;
-  k := 0;
-  while (k < N)
-    invariant (forall i: int :: i < k && vi(i) ==> a[i] == old_a[perm[i]]);
-    invariant (forall i: int :: i < k && vi(i) ==> perm[i] == i);
-  {
-    a[k] := old_a[k];
-    perm[k] := k;
-    k := k + 1;
-  }
-  assert perm(perm);
-}
 /*
   swaps content of a at locations i and j
 */
 procedure swap(i, j: int)
-  requires perm_of(a, old_a, perm);
   requires vi(i);
   requires vi(j);
   modifies a, perm;
   ensures a[i] == old(a)[j];
   ensures a[j] == old(a)[i];
-  ensures perm_of(a, old_a, perm);
+  // preserves the permutation property
+  ensures perm_of(old(a), old(old_a), old(perm)) ==> perm_of(a, old_a, perm);
   // we do not touch anything other than the values a[j] and a[i]
   ensures (forall k: int :: k != i && k != j ==> a[k] == old(a)[k]);
 {
   var temp: int;
 
-  temp := perm[i];
-  perm[i] := perm[j];
-  perm[j] := temp;
+  if (perm_of(old(a), old(old_a), old(perm))) {
+    temp := perm[i];
+    perm[i] := perm[j];
+    perm[j] := temp;
+  }
 
   temp := a[i];
   a[i] := a[j];
@@ -104,19 +83,17 @@ procedure swap(i, j: int)
 }
 
 /*
-  partitions a between lo and hi into two parts
-  one part with all values below the pivot
-  another part with all values above the pivot
-  Returns: index p which divides a in
-           a) elements greater equal pivot
-           b) elements smaller pivot
-           p is the index of the first element in a
+  partitions a between lo and hi into two parts:
+           (a) elements greater equal pivot
+           (b) elements smaller pivot
+  Returns: p, the index of the first element in (a)
 */
 procedure partition(lo, hi, pivot: int) returns (p: int)
   requires 0 <= lo && lo <= hi && hi < N;
-  requires perm_of(a, old_a, perm);
   modifies a, perm;
-  ensures perm_of(a, old_a, perm);
+  // preserves the permutation property
+  ensures perm_of(old(a), old(old_a), old(perm)) ==> perm_of(a, old_a, perm);
+  // valid partition index
   ensures lo <= p && p <= hi + 1;
   // all values from lo to p are smaller than the pivot
   ensures (forall k: int :: lo <= k && k < p ==> a[k] < pivot);
@@ -125,12 +102,20 @@ procedure partition(lo, hi, pivot: int) returns (p: int)
   // we don't touch the array outside lo and hi
   ensures (forall k: int :: k < lo ==> a[k] == old(a)[k]);
   ensures (forall k: int :: hi < k ==> a[k] == old(a)[k]);
-  // all values between lo and hi are greater-equal all values below lo
+  // if some values below lo were smaller-equal than all values between lo and hi,
+  // then those values will still be smaller-equal than all values between lo and hi afterwards.
+  // (implied by the permutation property and that values outside lo and hi
+  // aren't changed, but boogie can better make use of it, if it's stated
+  // explicitely)
   ensures (forall i: int :: i < lo ==>
     (forall k: int :: lo <= k && k <= hi ==> old(a)[i] <= old(a)[k])
     ==> (forall k: int :: lo <= k && k <= hi ==> a[i] <= a[k])
   );
-  // all values between lo and hi are smaller all values above hi
+  // if some values above hi were bigger-equal than all values between lo and hi,
+  // then those values will still be bigger-euqal than all values between lo and hi afterwards.
+  // (implied by the permutation property and that values outside lo and hi
+  // aren't changed, but boogie can better make use of it, if it's stated
+  // explicitely)
   ensures (forall i: int :: hi < i ==>
     (forall k: int :: lo <= k && k <= hi ==> old(a)[k] <= old(a)[i])
     ==> (forall k: int :: lo <= k && k <= hi ==> a[k] <= a[i])
@@ -143,7 +128,7 @@ procedure partition(lo, hi, pivot: int) returns (p: int)
 
   while (i < j)
    invariant lo <= i && i <= j && j <= hi;
-   invariant perm_of(a, old_a, perm);
+   invariant perm_of(old(a), old(old_a), old(perm)) ==> perm_of(a, old_a, perm);
    invariant (forall k: int :: lo <= k && k < i ==> a[k] < pivot);
    invariant (forall k: int :: j < k && k <= hi ==> pivot <= a[k]);
    invariant (forall k: int :: i < k && k < j ==> a[k] == old(a)[k]);
@@ -158,6 +143,7 @@ procedure partition(lo, hi, pivot: int) returns (p: int)
     ==> (forall k: int :: lo <= k && k <= hi ==> a[k] <= a[l])
    );
   {
+    // find first candidate to be swapped
     while (a[i] < pivot && i < j)
       invariant lo <= i && i <= j && j <= hi;
       invariant (forall k: int :: lo <= k && k < i ==> a[k] < pivot);
@@ -165,10 +151,12 @@ procedure partition(lo, hi, pivot: int) returns (p: int)
       i := i + 1;
     }
 
+    // finished
     if (i == j) {
       break;
     }
 
+    // find second candidate to be swapped
     while (pivot <= a[j] && i < j)
       invariant lo <= i && i <= j && j <= hi;
       invariant (forall k: int :: j < k && k <= hi ==> pivot <= a[k]);
@@ -176,6 +164,7 @@ procedure partition(lo, hi, pivot: int) returns (p: int)
       j := j - 1;
     }
 
+    // finished
     if (i == j) {
       break;
     }
@@ -183,6 +172,7 @@ procedure partition(lo, hi, pivot: int) returns (p: int)
     call swap(i, j);
   }
 
+  // take care of special case
   if (a[i] < pivot) {
     i := i + 1;
   }
@@ -197,22 +187,32 @@ procedure quicksort(lo, hi: int)
   requires 0 <= lo;
   requires lo <= hi;
   requires hi < N;
-  requires perm_of(a, old_a, perm);
   modifies a, perm;
-  // a is a permutation of the old a
-  ensures perm_of(a, old_a, perm);
-  // a from lo to hi is sorted
-  ensures sorted(a, lo, hi);
+  // preserves the permutation property
+  ensures perm_of(old(a), old(old_a), old(perm)) ==> perm_of(a, old_a, perm);
+  // a from lo to hi is sorted if it makes sense
+  ensures hi - lo >= 1 ==> sorted(a, lo, hi);
+  // leaves a and perm untouched otherwise
+  ensures hi - lo < 1 ==> (forall i: int :: vi(i) ==> a[i] == old(a)[i]);
+  ensures hi - lo < 1 ==> (forall i: int :: vi(i) ==> perm[i] == old(perm)[i]);
   // we don't modify anything below lo
   ensures (forall k: int :: k < lo ==> a[k] == old(a)[k]);
   // we don't modify anything above hi
   ensures (forall k: int :: hi < k ==> a[k] == old(a)[k]);
-  // all values between lo and hi are greater-equal all values below lo
+  // if some values below lo were smaller-equal than all values between lo and hi,
+  // then those values will still be smaller-equal than all values between lo and hi afterwards.
+  // (implied by the permutation property and that values outside lo and hi
+  // aren't changed, but boogie can better make use of it, if it's stated
+  // explicitely)
   ensures (forall i: int :: i < lo ==>
    (forall k: int :: lo <= k && k <= hi ==> old(a)[i] <= old(a)[k])
    ==> (forall k: int :: lo <= k && k <= hi ==> a[i] <= a[k])
   );
-  // all values between lo and hi are smaller all values above hi
+  // if some values above hi were bigger-equal than all values between lo and hi,
+  // then those values will still be bigger-euqal than all values between lo and hi afterwards.
+  // (implied by the permutation property and that values outside lo and hi
+  // aren't changed, but boogie can better make use of it, if it's stated
+  // explicitely)
   ensures (forall i: int :: hi < i ==>
    (forall k: int :: lo <= k && k <= hi ==> old(a)[k] <= old(a)[i])
    ==> (forall k: int :: lo <= k && k <= hi ==> a[k] <= a[i])
@@ -220,6 +220,7 @@ procedure quicksort(lo, hi: int)
 {
   var p: int;
 
+  // take care of base cases
   if (lo == hi) {
     return;
   } else if (lo + 1 == hi) {
@@ -229,6 +230,7 @@ procedure quicksort(lo, hi: int)
     return;
   }
 
+  // recursive case: partition, then quicksort each partition if necessary
   call p := partition(lo, hi - 1, a[hi]);
 
   call swap(p, hi);
@@ -245,10 +247,14 @@ procedure quicksort(lo, hi: int)
   sorts a using bucketsort
 */
 procedure bucketsort()
-  requires perm_of(a, old_a, perm);
   modifies a, perm;
-  ensures perm_of(a, old_a, perm);
-  ensures sorted(a, 0, N - 1);
+  // preserves the permutation property
+  ensures perm_of(old(a), old(old_a), old(perm)) ==> perm_of(a, old_a, perm);
+  // sorts all of a if it makes sense
+  ensures N >= 2 ==> sorted(a, 0, N - 1);
+  // leaves a and perm untouched otherwise
+  ensures N < 2 ==> (forall i: int :: vi(i) ==> a[i] == old(a)[i]);
+  ensures N < 2 ==> (forall i: int :: vi(i) ==> perm[i] == old(perm)[i]);
 {
   /*
    * Choose buckets such that each bucket's range is
@@ -259,49 +265,34 @@ procedure bucketsort()
    */
   var b1, b2: int;
 
-  // check if N is greater than zero because in this case the
-  // partitioning would not work
-  // it still verifies because
-  if(N > 0) {
-    // do first bucket
-    call b1 := partition(0, N - 1, -N);
+  // if N <= 1 the sortedness property doesn't make any sense
+  if (N <= 1) {
+    return;
+  }
+  
+  // do first bucket
+  call b1 := partition(0, N - 1, -N);
 
-    assert b1 <= N;
+  // sort the first bucket only if it contains elements
+  if (0 < b1) {
+    call quicksort(0, b1 - 1);
+  }
 
-    // return with a single quicksort immediately if b1 is
-    // outside the range [0,N-1]
-    if (b1 == N) {
-      call quicksort(0, b1 - 1);
-      return;
-    }
+  // if all elements were in the first bucket, we're done
+  if (b1 == N) {
+    return;
+  }
+  
+  // do second and third bucket
+  call b2 := partition(b1, N - 1, N);
 
-    // b1 could still be 0, in this case the left most bucket is empty
-    // and we don't need to sort it
-    if (0 < b1) {
-      assert (forall k: int :: 0 <= k && k < b1 ==> a[k] < a[b1]);
-      call quicksort(0, b1 - 1);
-      // should probably generalize the semantics that establish
-      // in partition & quicksort that the respective blocks don't change their
-      // relationship to upper and lower limits.
-      assert (forall k: int :: 0 <= k && k < b1 ==> a[k] <= a[b1]);
-      assert sorted(a, 0, b1 - 1);
-    }
-
-    //assert -N <= a[b1];
-    //assert (forall k: int :: 0 <= k && k < b1 ==> a[k] < -N);
-    //assert (forall k: int :: 0 <= k && k < b1 ==> a[k] < a[b1]);
-
-    // do second and third bucket
-    call b2 := partition(b1, N - 1, N);
-
-    if (b1 < b2) {
-      call quicksort(b1, b2 - 1);
-    }
-    assert sorted(a, 0, b2 - 1);
-    if (b2 < N) {
-      call quicksort(b2, N - 1);
-    }
-    assert sorted(a, 0, N - 1);
+  // sort second bucket only if it contains elements
+  if (b1 < b2) {
+    call quicksort(b1, b2 - 1);
+  }
+  // sort third bucket only if it contains elements
+  if (b2 < N) {
+    call quicksort(b2, N - 1);
   }
 }
 
@@ -311,10 +302,14 @@ procedure bucketsort()
 */
 procedure sort() returns ()
   modifies a, perm;
-  ensures perm_of(a, old_a, perm);
-  ensures sorted(a, 0, N - 1);
+  // preserves the permutation property
+  ensures perm_of(old(a), old(old_a), old(perm)) ==> perm_of(a, old_a, perm);
+  // sorts all of a if it makes sense
+  ensures N >= 2 ==> sorted(a, 0, N - 1);
+  // leaves a and perm untouched otherwise
+  ensures N < 2 ==> (forall i: int :: vi(i) ==> a[i] == old(a)[i]);
+  ensures N < 2 ==> (forall i: int :: vi(i) ==> perm[i] == old(perm)[i]);
 {
-  call init();
   if (has_small_elements(a))
   {
     call bucketsort();
