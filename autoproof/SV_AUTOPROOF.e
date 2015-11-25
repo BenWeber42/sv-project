@@ -12,7 +12,7 @@ feature
 
     wipe (x: SIMPLE_ARRAY [INTEGER])
         note
-	    	explicit: wrapping
+        	explicit: wrapping
 		require
 			x /= Void
 			modify (x)
@@ -164,7 +164,6 @@ feature
 				k - if Result then 1 else 0 end
 			end
 		ensure
-			-- TODO: verify correctness of post conditions in search (don't forget to adjust invariant if necessary if post condition needs to be changed)
             unmodified_count: lst.count = old lst.count
             unmodified_lst: across 1 |..| lst.count as i all lst.sequence [i.item] = (old lst.sequence) [i.item] end
             unmodified_v: v = old v
@@ -200,11 +199,7 @@ feature
 		end
 
 
-
-
-
 feature
-
 
 	paly (a: SIMPLE_ARRAY [INTEGER]): BOOLEAN
 		note
@@ -224,7 +219,6 @@ feature
                 y = a.count - x + 1
                 Result = across 1 |..| (x - 1) as i all a.sequence [i.item] = a.sequence [a.count - i.item + 1] end
                 not Result implies a.sequence [x - 1] /= a.sequence [y + 1]
-                -- do we need another invariant with Result implies?
 			until
 				x >= y or not Result
 			loop
@@ -237,14 +231,10 @@ feature
 				y - x
 			end
 		ensure
-            -- TODO: verify correctness of post conditions in paly (don't forget to adjust invariant if necessary if post condition needs to be changed)
             Result = across 1 |..| a.count as i all a.sequence [i.item] = a.sequence [a.count - i.item + 1] end
-            -- TODO: add post conditions that a wasn't modified? (don't forget to adjust invariant if necessary if post condition needs to be changed)
-            -- ATTEMPT: make sure a did not get modified, does this really need another invariant?
             a.count = (old a).count
             across 1 |..| a.count as i all a.sequence [i.item] = (old a).sequence [i.item] end
 		end
-
 
 
 end
