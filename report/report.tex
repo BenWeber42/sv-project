@@ -73,7 +73,7 @@
 
 % General information
 
-\title{Sofware Verification -- Course Project Report}
+\title{Software Verification -- Course Project Report}
 
 % Use the \alignauthor commands to handle the names
 % and affiliations for an 'aesthetic maximum' of six authors.
@@ -106,14 +106,55 @@
 \maketitle
 
 \begin{abstract}
-\textbf{This report presents verifications using AutoProof\cite{autoproof} and Boogie\cite{boogie}...}
+\textbf{By using \textit{Software Verfification} the programmer wants to achieve guarantees in terms of previously defined properties.\\
+In theory however, the underlaying problem is undecidable hence researchers have proposed and developed various semi-automatic methods.\\
+One approach called \textit{Auto-Active Verification} tries to automate as much as possible, while the programmer provides guidance indirectly through program-level annotations\cite{autoactivelecture}.
+We use the verifier AutoProof\cite{autoproof} to verify an existing simple list data structure on the program level. \\Furthermore, we present an implementation of quick sort\cite{quicksort} and bucket sort\cite{bucketsort} in the \textit{intermediate verification language} (IVL) boogie\cite{boogie}. We provide the needed annotations to formally prove correctness of the implementation in respect to the specification.
+}
 \end{abstract}
 
 \section{Introduction}
-intro intro intro
+\todo{is this really needed?}
+
+\section{Autoproof verficiation}
+\todo{Add missing specifications to all features of the
+SV\_AUTOPROOF class as embedded contracts (without altering the implementation).
+Describe how you were able to specify complete specifications, and any problems that
+occurred. ​
+Using AutoProof, verify as many features of SV\_AUTOPROOF as possible.
+Discuss if there were any aspects of the specification you had to change to make them
+easier to verify. Describe which parts of the specification you could not verify, and what
+the limitations were that prevented you from doing it.}
+
+\section{Boogie}
+
+
+\subsection{Boogie implementation}
+\todo{Implement the sorting algorithm described in
+Section 3.2. Discuss your design choices, and how you modelled the algorithm using the
+primitives of Boogie}
+
+\subsection{Boogie specification}
+\todo{Specify the complete behaviour of the sorting algorithm
+using the specification primitives of Boogie. Discuss your specification choices, in
+particular, how you modelled the “permutation” property for the resulting array.
+Describe any difficulties and how you overcame them. Contrast the specification
+language of Boogie with the specification language of AutoProof.}
+
+\subsection{Boogie verification}
+\todo{Verify your Boogie program using Boogie. Report any
+significant problems you encountered; for example, which procedures you could verify
+and which ones you could not. Describe if there were any aspects of the implementation
+or of the specification you had to change to make them easier to verify. Describe whichparts of the specification you could not verify, and what the limitations were that
+prevented you from doing it. Explain how you achieved modular verification.}
+
+\subsection{Comparison Autoproof \& Boogie}
+\todo{Particular effort should be made to contrast your experiences doing verification at the
+program level (AutoProof) and intermediate verification language level (Boogie).}
 
 \section{Conclusion}
-conclusion...
+\todo{CONCLUDE}
+
 
 
 % The following two commands are all you need in the
@@ -126,4 +167,3 @@ conclusion...
 %\balancecolumns % GM June 2007
 
 \end{document}
-
