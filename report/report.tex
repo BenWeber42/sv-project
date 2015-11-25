@@ -128,7 +128,7 @@ section \ref{s:conclusion}.
 
 Many features already had a specification attached. Thus, it was sufficient to
 make the autoproof tool accept the implementation using hints such as assertions
-and invariants.
+or invariants.
 \\
 \\
 The \textbf{wipe} feature could successfully be verified once we specified in the loop
@@ -192,12 +192,56 @@ the limitations were that prevented you from doing it.}
 \section{Boogie}
 \label{s:boogie}
 
+\todo{Boogie introduction, blablabla ivl by microsoft's research group, used
+by many other tools}
+
 \subsection{Boogie implementation}
+
+Using Boogie to implement the given algorithms didn't pose a challenge.
+Eventhough Boogie's simplicity, both algorithms could be expressed well.
+While Boogie has powerful means to abstract complicated concepts, we only
+needed some very simple language structures of Boogie to express an array to be
+sorted.
+
+One particular interesting design choice was to implement the partition step
+of the quicksort algorithms in such a way that it could be reused by the bucketsort
+algorithm.
+
+This simplified the implementation due to the additional code reuse and didn't
+make the verification or speficiation more complicated.
+
 \todo{Implement the sorting algorithm described in
 Section 3.2. Discuss your design choices, and how you modelled the algorithm using the
 primitives of Boogie}
 
 \subsection{Boogie specification}
+
+Specification on Boogie was interesting due to two different aspects.
+
+Firstly, there was the challenge to fully capture the meaning of an algorithm
+through the specification.
+
+Boogie was very helpful there with its rather powerful expression language which
+contains both the universal and existential quantifiers.
+However, one also had to be careful to express formulas such that Boogie could
+handle them well. Otherwise, more annotations are necessary which is less desirable.
+
+Secondly, it was often surprising to see what a complete specification was for a procedure.
+An incomplete specification often leads to the failure of the verification.
+Thus we often came accross incomplete specifications.
+
+We learned that in addition to specifying what did get changed we also had to
+specify what didn't get changed. A complicated example of this can be found in
+the \textbf{quicksort} and \textbf{partition} procedures.
+
+Both of these procedures preserve the property that if some values were previously
+bigger-equal than all values in a given range, those values will still be bigger-equal
+after the procedure call.
+
+While this is trivially obvious because both procedures only permute an array,
+it's not trivially obvious that this property is necessary to verify the
+\textbf{quicksort} and \textbf{bucketsort} implementations.
+
 \todo{Specify the complete behaviour of the sorting algorithm
 using the specification primitives of Boogie. Discuss your specification choices, in
 particular, how you modelled the “permutation” property for the resulting array.
