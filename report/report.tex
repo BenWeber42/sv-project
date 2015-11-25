@@ -92,7 +92,7 @@
 %
 % 1st. author
 \alignauthor Benjamin Weber\\
-	\affaddr{ETH ID }\\
+	\affaddr{ETH ID 11-933-017}\\
 	\email{benweber@student.ethz.ch}
 % 2nd. author
 \alignauthor Marcel Mohler\\
@@ -106,17 +106,80 @@
 \maketitle
 
 \begin{abstract}
-\textbf{By using \textit{Software Verfification} the programmer wants to achieve guarantees in terms of previously defined properties.\\
-In theory however, the underlaying problem is undecidable hence researchers have proposed and developed various semi-automatic methods.\\
+\textbf{By using \textit{Software Verification} a programmer wants to achieve guarantees in terms of previously defined properties.\\
+In theory however, it is undecidable whether a given piece of code conforms to its specification, hence researchers have proposed and developed various semi-automatic methods.\\
 One approach called \textit{Auto-Active Verification} tries to automate as much as possible, while the programmer provides guidance indirectly through program-level annotations\cite{autoactivelecture}.
-We use the verifier AutoProof\cite{autoproof} to verify an existing simple list data structure on the program level. \\Furthermore, we present an implementation of quick sort\cite{quicksort} and bucket sort\cite{bucketsort} in the \textit{intermediate verification language} (IVL) boogie\cite{boogie}. We provide the needed annotations to formally prove correctness of the implementation in respect to the specification.
+We use the verifier AutoProof\cite{autoproof} to verify different algorithms on the program level. \\Furthermore, we present an implementation of quick sort\cite{quicksort} and bucket sort\cite{bucketsort} in the \textit{intermediate verification language} (IVL) boogie\cite{boogie}. We provide the needed annotations to formally prove correctness of the implementation with respect to the specification.
 }
 \end{abstract}
 
 \section{Introduction}
-\todo{is this really needed?}
+As part of the \textbf{software verification} course offered by \textbf{ETHZ},
+we had to complete a project involving software verification on the program
+level with AutoProof as well as on the intermediate level through Boogie.
+
+In section \ref{s:autoproof} we discuss software verification using AutoProof.
+We continue to discuss the Boogie part in section \ref{s:boogie} and compare
+the two in section \ref{s:comparison}. Finally, we present our conclusion in
+section \ref{s:conclusion}.
 
 \section{Autoproof verficiation}
+\label{s:autoproof}
+
+Many features already had a specification attached. Thus, it was sufficient to
+make the autoproof tool accept the implementation using hints such as assertions
+and invariants.
+\\
+\\
+The \textbf{wipe} feature could successfully be verified once we specified in the loop
+invariant that the post-condition was gradually established. This strategy
+turned out to be useful for the whole project.
+\\
+\\
+The \textbf{mod\_three} feature could be verified similarly. We just had to
+specify what didn't get modified additionally.
+\\
+\\
+We needed to specify more to verify the \textbf{swapper} feature. To establish
+the pre-conditions of \textbf{swap} two invariants regarding \textbf{x} and
+\textbf{y} were necessary. Once those pre-conditions could be established, the
+previous strategy was sufficient to verify the whole feature.
+\\
+\\
+The \textbf{search} feature is special because we also had to specify the 
+post-conditions ourselves. No tool can verify whether the post-conditions truely
+capture the full extent of what the programmer means to achieve.
+
+We believe the correct meaning of the \textbf{search} feature is that it does
+not modify the list to be search and that it returns \textbf{true} only iff
+the given integer is in that list.
+
+The \textbf{has} feature of the ghost-feature \textbf{sequence} was very useful
+to express the intuition above in AutoProof.
+
+To verify the feature it was sufficient to explicitelly state the implications
+of \textbf{Result} for both cases \textbf{true} and \textbf{false}.
+\\
+\\
+Verifying the \textbf{prod\_sum} feature was rather trivial by specifying that
+the post-condition was gradually established.
+\\
+\\
+In contrast the \textbf{paly} feature was more complicated. First the pre-conditions
+had to be established by adding simple invariants about \textbf{x} and \textbf{y}.
+Then we used the strategy to show AutoProof that the post-condition is gradually
+established by the loop.
+
+But that still wasn't enough. Thus we had to specify explicitelly the counter-example
+when \textbf{Result} became \textbf{false}.
+
+Again, we had to be careful that the post-condition fully captured the meaning
+of the \textbf{paly} feature. We believe we achieved this by establishing the
+correctness through the post-condition involving the result and by establishing
+that the parameter does not get modified.
+
+
+
 \todo{Add missing specifications to all features of the
 SV\_AUTOPROOF class as embedded contracts (without altering the implementation).
 Describe how you were able to specify complete specifications, and any problems that
@@ -127,7 +190,7 @@ easier to verify. Describe which parts of the specification you could not verify
 the limitations were that prevented you from doing it.}
 
 \section{Boogie}
-
+\label{s:boogie}
 
 \subsection{Boogie implementation}
 \todo{Implement the sorting algorithm described in
@@ -148,11 +211,13 @@ and which ones you could not. Describe if there were any aspects of the implemen
 or of the specification you had to change to make them easier to verify. Describe whichparts of the specification you could not verify, and what the limitations were that
 prevented you from doing it. Explain how you achieved modular verification.}
 
-\subsection{Comparison Autoproof \& Boogie}
+\section{Comparison Autoproof \& Boogie}
+\label{s:comparison}
 \todo{Particular effort should be made to contrast your experiences doing verification at the
 program level (AutoProof) and intermediate verification language level (Boogie).}
 
 \section{Conclusion}
+\label{s:conclusion}
 \todo{CONCLUDE}
 
 
