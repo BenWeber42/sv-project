@@ -108,8 +108,8 @@
 \begin{abstract}
 \textbf{By using \textit{Software Verification} a programmer wants to achieve guarantees in terms of previously defined properties.\\
 However, generally it is undecidable whether a given piece of code conforms to its specification, hence researchers have proposed and developed various semi-automatic methods.\\
-One approach called \textit{Auto-Active Verification} tries to automate as much as possible, while the programmer provides guidance indirectly through program-level annotations\cite{autoactivelecture}.
-We used the verifier AutoProof\cite{autoproof} to verify different algorithms on the program level. \\Furthermore, we present an implementation of quick sort\cite{quicksort} and bucket sort\cite{bucketsort} in the \textit{intermediate verification language} (IVL) Boogie\cite{boogie}. We provide the needed annotations to formally prove correctness of the implementation with respect to the specification.
+One approach called \textit{Auto-Active Verification} tries to automate as much as possible, while the programmer provides guidance indirectly through program-level annotations\cite{tschannen2011verifying}\cite{autoactivelecture}.
+We used the verifier AutoProof\cite{autoproof} to verify different algorithms on the program level. \\Furthermore, we present an implementation of quick sort\cite{quicksort} and bucket sort\cite{bucketsort} in the \textit{intermediate verification language} (IVL) Boogie\cite{barnett2006boogie}\cite{boogie}. We provide the needed annotations to formally prove correctness of the implementation with respect to the specification.
 }
 \end{abstract}
 
@@ -191,7 +191,7 @@ reason about sequences and it seems that AutoProof can handle them pretty well.
 \section{Boogie}
 \label{s:boogie}
 Boogie is an intermediate verification language (IVL), intended as a layer on which to build program verifiers for other languages\cite{boogiegithub}.\\
-It is also the name of a tool that accepts Boogie language as input and then generates verification conditions that are passed to an SMT solver such as Z3\cite{z3}.\\
+It is also the name of a tool that accepts Boogie language as input and then generates verification conditions that are passed to an SMT solver such as Z3\cite{de2008z3}\cite{z3}.\\
 Initially, it has been developed by Microsoft Research but it is also open to other contributors on Github now.
 
 \subsection{Boogie implementation}
