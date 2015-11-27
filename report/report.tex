@@ -107,7 +107,7 @@
 
 \begin{abstract}
 \textbf{By using \textit{Software Verification} a programmer wants to achieve guarantees in terms of previously defined properties.\\
-In theory however, it is undecidable whether a given piece of code conforms to its specification, hence researchers have proposed and developed various semi-automatic methods.\\
+However, generally it is undecidable whether a given piece of code conforms to its specification, hence researchers have proposed and developed various semi-automatic methods.\\
 One approach called \textit{Auto-Active Verification} tries to automate as much as possible, while the programmer provides guidance indirectly through program-level annotations\cite{autoactivelecture}.
 We used the verifier AutoProof\cite{autoproof} to verify different algorithms on the program level. \\Furthermore, we present an implementation of quick sort\cite{quicksort} and bucket sort\cite{bucketsort} in the \textit{intermediate verification language} (IVL) Boogie\cite{boogie}. We provide the needed annotations to formally prove correctness of the implementation with respect to the specification.
 }
@@ -128,9 +128,12 @@ section \ref{s:conclusion}.
 
 Many features already had a specification attached. Thus, it was sufficient to
 make the autoproof tool accept the implementation using hints such as assertions
-or invariants.
-\\
-\\
+or invariants. Features with incomplete specifications were more challenging as
+they did not allow for such a high certainty regarding the correctness of the
+solution.
+
+\subsection{Verification of SV\_AUTOPROOF}
+
 The \textbf{wipe} feature could successfully be verified once we specified in the loop
 invariant that the post-condition was gradually established. This strategy
 turned out to be useful for the whole project.
@@ -150,7 +153,7 @@ The \textbf{search} feature is special because we also had to specify the
 post-conditions ourselves. No tool can verify whether the post-conditions truely
 capture the full extent of what the programmer means to achieve.\\
 We believe the correct meaning of the \textbf{search} feature is that it does
-not modify the list to be search and that it returns \textbf{true} only iff
+not modify the list to be searched and that it returns \textbf{true} only iff
 the given integer is in that list.\\
 The \textbf{has} feature of the ghost-feature \textbf{sequence} was very useful
 to express the intuition above in AutoProof.\\
@@ -162,7 +165,7 @@ Verifying the \textbf{prod\_sum} feature was rather trivial by specifying that
 the post-condition was gradually established.
 \\
 \\
-In contrast the \textbf{paly} feature was more complicated. First the pre-conditions
+In contrast the \textbf{paly} feature was more complicated. First some pre-conditions
 had to be established by adding simple invariants about \textbf{x} and \textbf{y}.
 Then we used the strategy to show AutoProof that the post-condition is gradually
 established by the loop.\\
@@ -173,11 +176,23 @@ of the \textbf{paly} feature. We believe we achieved this by establishing the
 correctness through the post-condition involving the result and by establishing
 that the parameter does not get modified.
 
+\subsection{Experience using AutoProof}
+
+It is noteworthy that AutoProof's modify clause is very useful for specification.
+Because every specification should technically contain what does not get modified
+in addition to describing what gets modified. Due to the modify clause this
+becomes much easier, because AutoProof can simply assume that everything not part
+of the modify clause stays unmodified.
+\\
+\\
+Furthermore, the ghost features of \textbf{SIMPLE\_ARRAY} were very useful to
+reason about sequences and it seems that AutoProof can handle them pretty well.
+
 \section{Boogie}
 \label{s:boogie}
 Boogie is an intermediate verification language (IVL), intended as a layer on which to build program verifiers for other languages\cite{boogiegithub}.\\
-It is also the name of a tool that accepts Boogie language as input and then generates verification conditions that are passed to an SMT solver like Z3\cite{z3}.\\
-Initially, it has been developed by Microsoft Research but is also open to other contributors on Github.
+It is also the name of a tool that accepts Boogie language as input and then generates verification conditions that are passed to an SMT solver such as Z3\cite{z3}.\\
+Initially, it has been developed by Microsoft Research but it is also open to other contributors on Github now.
 
 \subsection{Boogie implementation}
 
@@ -185,7 +200,7 @@ Using Boogie to implement the given algorithms did not pose a challenge.
 Even though Boogie's simplicity, both algorithms could be expressed well.
 While Boogie has powerful means to abstract complicated concepts, we only
 needed some very simple language structures of Boogie to express an array to be sorted.\\
-One particular interesting design choice was to implement the partition step
+One particularly interesting design choice was to implement the partition step
 of the quicksort algorithms in such a way that it could be reused by the bucketsort algorithm.\\
 This simplified the implementation due to the additional code reuse and didn't
 make the verification or speficiation more complicated.
@@ -212,12 +227,107 @@ function sorted(a: [int]int, lo, hi: int): bool
 Furthermore we need to make sure, that the sorted array is actually a valid
 permutation of the input array. Modelling this property turned out to be the most difficult part
 of this project.\\
-We tried a few different solutions which we will describe in more detail.
-A very early idea was to define the properties with axioms.\\ 
-Using axioms to provide Boogie with additional theoretical constraints is a very simple yet dangerous approach. Because Boogie will not prove the validity of these axioms, the correctness of a validation using these axioms relies on the correctness of the axioms.\\
-So if we design the axioms poorly we might end up proving incorrect statements (unsound).\todo{add example}.\\
-Other/auto proof/ counts. \todo{det chasch du vellecht besser oeppis zum verlauf saege + biispiel code}.\\
-Because of the mentioned pitfalls of the previous attempts we decided to model the property by keeping an additional permutation array, that stores the modification from the input array to the final, sorted array. This allows us to easily verify if the current array is a permutation of the initial one at the cost of storing two more arrays of the same length N. Further details can be found in Section \ref{s:boogie_verification}.\todo{wieso hemmer eigentlech die init() methode nuemm?}
+The art is to find a way to express the permutation property in such a way that
+Boogie can handle it well and that it is also useful to work with for verification
+and specification.\\
+As such we tried several different solutions which we will describe in more detail
+in the following.\\
+\\
+\\
+A very early idea was to define the properties with axioms.
+\begin{lstlisting}
+// uninterpreted function describing permutations
+function permutation(a, b: [int]int): bool;
+
+// reflexivity
+axiom (forall a: [int]int :: permutation(a, a));
+// symmetry
+axiom (forall a, b: [int]int :: permutation(a, b)
+  ==> permutation(b, a));
+// transitivity
+axiom (forall a, b, c: [int]int ::
+  permutation(a, b) && permutation(b, c)
+    ==> permutation(a, c));
+\end{lstlisting}
+This allows one to easily introduce trivial properties of permutations such as
+reflexivity, symmetry and transitivity. Once, one can proof that swap preserves
+the permutation property, Boogie can infer that whole procedures also preserve
+it, if they only use the swap procedure to modify the input array (which can be easily achieved).\\
+While this is an attractive approach as most of the complexity is contained in the swap procedure,
+it is also dangerous in general. The problem with axioms and assumptions as well
+in Boogie is that Boogie will assume them to be true unconditionally. Therefore,
+one has to be very careful not to introduce unsound axioms or assumptions.\\
+In a sense, one loses some of the certainty gained by using sound tools such as
+Boogie, because correctness aditionally relies on the correctness and soundness
+of the axioms and assumptions.\\
+In this specific case it may be reasonable to use such trivial axioms. A more
+interesting approach is to use Boogie to proof these axioms automatically. Using our
+definition of \textbf{perm\_of} one could use only the following axioms to
+proof these properties of permutations:
+\begin{lstlisting}
+axiom (forall a, b: [int]int :: permutation(a, b)
+   ==> (exists m: [int]int :: perm_of(a, b, m)));
+axiom (forall a, b, m: [int]int :: perm_of(a, b, m)
+   ==> permutation(a, b));
+\end{lstlisting}
+
+And then one could use a procedure to give a constructive proof for the
+reflexivity of permutations:
+\begin{lstlisting}
+procedure reflexivity(a: [int]int)
+  ensures permutation(a, a);
+{
+   var m: [int]int;
+   var k: int;
+
+   k := 0;
+   while (k < N)
+      invariant 0 <= k && k <= N;
+      invariant (forall i: int :: 0 <= i && i < k ==> m[i] == i);
+   {
+      m[k] := k;
+      k := k + 1;
+   }
+   assert perm_of(a, a, m);
+}
+\end{lstlisting}
+
+Then this gives strong reason to the legitimacy of using the reflexivity axiom
+during verification. For symmetry one would have to make the following procedure
+verify:
+\begin{lstlisting}
+procedure symmetry(a, b: [int]int)
+   requires permutation(a, b);
+   ensures permutation(b, a);
+{
+   var m, _m: [int]int;
+   // this is allowed due to the axioms
+   // linking permutation and perm_of
+   assume perm_of(a, b, m);
+                 
+   /* constructive proof */
+                     
+   assert perm_of(b, a, _m);
+}
+\end{lstlisting}
+
+And for transitivity one could use a similar approach as used for symmetry.\\
+However, we weren't able to verify the symmetry and transitivity property this way.
+Furthermore, Boogie might not be the right tool for such an approach.
+Nevertheless, it was an interesting excurse into another aspect of verification.
+\\
+\\
+Another idea which we explored was to look at the histograms of two arrays to
+check whether they were permutations of each other. One can (recursively) define a
+Boogie function \textbf{count} which returns how often a certain item appears in an 
+array. If every item of one array has the same count in another array, then they
+are permutations of each other.\\
+This has the advantage that no permutation array is required for verification.\\
+However, it turned out that Boogie can not handle these counts well and we were
+unable to verify the permutation property with this approach.
+\\
+\\
+Because of the mentioned pitfalls of the previous attempts we decided to model the property by keeping an additional permutation array, that stores the modification from the input array to the final, sorted array. This allows us to easily verify that the current array is a permutation of the initial one. Further details can be found in Section \ref{s:boogie_verification}.\todo{wieso hemmer eigentlech die init() methode nuemm?}
 \\\\
 In general, expressing the specifications on Boogie was interesting due to two different aspects.
 \\
@@ -231,16 +341,16 @@ handle them well. Otherwise, more annotations are necessary which is less desira
 \\
 \\
 Secondly, it was often surprising to see what a complete specification was for a procedure.
-An incomplete specification often leads to the failure of the verification.
+An incomplete specification can lead to the failure of the verification.
 Thus we often came across incomplete specifications.\\
 We learned that in addition to specifying what did get changed we also had to
-specify what didn't get changed. A complicated example of this can be found in
+specify what did not get changed. A complicated example of this can be found in
 the \textbf{quicksort} and \textbf{partition} procedures.\\
 Both of these procedures preserve the property that if some values were previously
 bigger-equal than all values in a given range, those values will still be bigger-equal
 after the procedure call.\\
 While this is trivially obvious because both procedures only permute an array,
-it's not trivially obvious that this property is necessary to verify the
+it is not trivially obvious that this property is necessary to verify the
 \textbf{quicksort} and \textbf{bucketsort} implementations.
 
 \todo{Specify the complete behaviour of the sorting algorithm
