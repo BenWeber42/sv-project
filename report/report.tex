@@ -319,8 +319,8 @@ Nevertheless, it was an interesting excurse into another aspect of verification.
 \\
 Another idea which we explored was to look at the histograms of two arrays to
 check whether they were permutations of each other. One can (recursively) define a
-Boogie function \textbf{count} which returns how often a certain item appears in an 
-array. If every item of one array has the same count in another array, then they
+Boogie function \textbf{count} which determines how often a certain element appears in an 
+array. If every element of one array has the same count in another array, then they
 are permutations of each other.\\
 This has the advantage that no permutation array is required for verification.\\
 However, it turned out that Boogie can not handle these counts well and we were
@@ -362,9 +362,11 @@ language of Boogie with the specification language of AutoProof.}
 \subsection{Boogie verification}
 \label{s:boogie_verification}
 We were able to verify the correctness of our implementation based on the sorted and permutation properties.\\
-We will describe a few challenges and issues we encountered during the verification process.
+We will describe a few challenges and issues we encountered during the verification process in the following.
 \\\\
-One of the main issues we had was termination. In Boogie we are only able to prove partial correctness. In contrast to total correctness, which means that the program behaves correctly with respect to its specification, partial correctness is a weaker notion which only requires a correct result if the program terminates.\\
+One of the main issues we had was termination. In Boogie one can only proove partial correctness, i.e. correctness only for the program traces that do terminate.
+Boogie ignores program traces that do not terminate. It would have been very useful to be able to proove total correctness which means that the program is
+guaranteed to terminate for all input parameters in addition conforming to its specification.\\
 Applied to our scenario this meant that if we do not carefully design our algorithms such that they always terminate, we might end up with postconditions that evaluate to trivially true because they can never be reached.\\
 See this small example, which verifies correctly in Boogie even though \texttt{1 == 0} is clearly a false statement.
 \begin{lstlisting}
@@ -379,7 +381,9 @@ procedure F(n: int) returns (r: int)
 \end{lstlisting}
 If we change the \texttt{while(true)} in line 4 to \texttt{while(false)} Boogie correctly reports that the postcondition might not hold.
 \\\\
-We also found the fact that we can not define pre conditions for functions limiting. Taking the example of \texttt{sorted()}, we would have liked to require an $N \leq 2$ because we handle the case of the empty and list of length 1 separately. Due to the way we defined \texttt{sorted()} it currently returns false for these special cases which is not ideal as we have false positives for \texttt{!sorted} (exactly these two cases, \texttt{N==0} and \texttt{N==1}). A precondition would allow us to define a property in a similar fashion as zero-division \texttt{x/0} is defined to be not possible.\todo{toent alles nonig so rund ond vellecht soett me die genaue uswirkige vo uesem approach no aschniide}.
+We also found the fact that we can not define pre-conditions for functions to be rather limiting. Taking the example of \texttt{sorted()}, we would have liked to require $N \geq 2$ because sortedness does not make sense for lists of lenght 1 or less. In our implementation we decided to conservatively define \textbf{sorted} to be false for those cases. However, this definition can still yield false positives if the expression \textbf{!sorted(...)} is used. A precondition would have allowed us to handle this better. This is similar to division which is also undefined for divisor being zero.
+\\
+Additionally, this forces one to think of the cases where $N < 2$ and it made us realize that we should specify the behaviour of our implementation also for this case. We believe in this case a sorting function should leave the array untouched. If one does not specify this, a sorting function could be free to do anything with the input array if its length is 1 or less!
 \\\\
 Another observation is the difference between defining a pre- and postcondition and defining a single postcondition which includes an implication.
 An example is drawn below:
@@ -389,14 +393,32 @@ procedure quickSort_a(lo, hi: int)
   ==> perm_of(a, old_a, perm);
 {..}
 procedure quickSort_b(lo, hi: int)
-  requires perm_of(old(a), old(old_a), old(perm));
+  requires perm_of(a, old_a, perm);
   ensures perm_of(a, old_a, perm);
 {..}
 \end{lstlisting}
-Option a is better (and we used this in our implementation) because preconditions should be predicates the algorithm requires to verify correctness. If we look at quick sort isolated, the permutation property is not needed to verify the sorted property. By defining the permutation property as an implication we achieve modularity and we are still able to verify it correctly.
+Option a is better (and we used this in our implementation) because preconditions should be requirements of the algorithm to work correctly.
+However, quicksort works correctly without \textbf{perm\_of(a, old\_a, perm)}.
+\\
+This way the algorithm can be used without having to establish the permutation property
+and instead it can be voluntarily established, if one wishes to make use of it.
 \\\\
-\todo{requires send guet, well mer chan secherstelle, dass de call korrekt esch, aber glichzitig hämmer jetzt mega vell ad hoc code "if (lo <= hi) \{ call quicksort(lo, hi); \}", anstatt, dass mer de fall im quicksort abfangt ond ignoriert. Aber dene verlürt mer sicherheit.}
-\\\\
+One interesting thing we noticed with pre-conditions is that they lead to ad-hoc code.
+For example the pre-condition $lo <= hi$ of the \textbf{quicksort} procedure leads to
+an additional \textbf{if} clause for every single call of \textbf{quicksort}.\\
+The only exception being in the \textbf{sort} procedure, because it implicitelly
+establishes this pre-condition. We are unsure whether this side-effect was
+introduced deliberatelly or not. The following assertion can be verified by Boogie:
+\begin{lstlisting}
+assert !has_small_elements(a) ==> N > 0;
+\end{lstlisting}
+However, with regards to the ad-hoc code due to pre-conditions, one might consider
+to remove these pre-conditions and simply deal with those cases separately inside
+the procedure. Though, we believe this solution is not optimal, because one can not
+be sure that the procedure handles these cases correctly in all situations.\\
+Thus, we see this ad-hoc code as a cost, to ensure that these cases are handled
+correctly (in our case it is just a coincidence that the when $lo > hi$ \textbf{quicksort}
+should simply do nothing for every \textbf{quicksort} call).
 \todo{loop invariants vs assertions, dass halt loop invariante wie pre-/post-conditions send (stoht vl au em language manual so ähnlech)}
 \\\\
 \todo{Verify your Boogie program using Boogie. Report any
