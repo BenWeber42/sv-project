@@ -123,11 +123,11 @@ We continue to discuss the Boogie part in section \ref{s:boogie} and compare
 the two in section \ref{s:comparison}. Finally, we present our conclusion in
 section \ref{s:conclusion}.
 
-\section{Autoproof verficiation}
+\section{AutoProof verficiation}
 \label{s:autoproof}
 
 Many features already had a specification attached. Thus, it was sufficient to
-make the autoproof tool accept the implementation using hints such as assertions
+make the AutoProof tool accept the implementation using hints such as assertions
 or invariants. Features with incomplete specifications were more challenging as
 they did not allow for such a high certainty regarding the correctness of the
 solution.
@@ -135,45 +135,45 @@ solution.
 \subsection{Verification of SV\_AUTOPROOF}
 
 The \textbf{wipe} feature could successfully be verified once we specified in the loop
-invariant that the post-condition was gradually established. This strategy
+invariant that the postcondition was gradually established. This strategy
 turned out to be useful for the whole project.
 \\
 \\
 The \textbf{mod\_three} feature could be verified similarly. We just had to
-specify what didn't get modified additionally.
+specify what did not get modified additionally.
 \\
 \\
 We needed to specify more to verify the \textbf{swapper} feature. To establish
-the pre-conditions of \textbf{swap} two invariants regarding \textbf{x} and
-\textbf{y} were necessary. Once those pre-conditions could be established, the
+the preconditions of \textbf{swap} two invariants regarding \textbf{x} and
+\textbf{y} were necessary. Once those preconditions could be established, the
 previous strategy was sufficient to verify the whole feature.
 \\
 \\
 The \textbf{search} feature is special because we also had to specify the 
-post-conditions ourselves. No tool can verify whether the post-conditions truely
+postconditions ourselves. No tool can verify whether the postconditions truly
 capture the full extent of what the programmer means to achieve.\\
 We believe the correct meaning of the \textbf{search} feature is that it does
-not modify the list to be searched and that it returns \textbf{true} only iff
+not modify the list to be searched and that it returns \textbf{true} if and only if
 the given integer is in that list.\\
 The \textbf{has} feature of the ghost-feature \textbf{sequence} was very useful
 to express the intuition above in AutoProof.\\
-To verify the feature it was sufficient to explicitelly state the implications
+To verify the feature it was sufficient to explicitly state the implications
 of \textbf{Result} for both cases \textbf{true} and \textbf{false}.
 \\
 \\
 Verifying the \textbf{prod\_sum} feature was rather trivial by specifying that
-the post-condition was gradually established.
+the postcondition was gradually established.
 \\
 \\
-In contrast the \textbf{paly} feature was more complicated. First some pre-conditions
+In contrast the \textbf{paly} feature was more complicated. First some preconditions
 had to be established by adding simple invariants about \textbf{x} and \textbf{y}.
-Then we used the strategy to show AutoProof that the post-condition is gradually
+Then we used the strategy to show AutoProof that the postcondition is gradually
 established by the loop.\\
-But that still wasn't enough. Thus we had to specify explicitelly the counter-example
+But that still was not enough. Thus we had to specify explicitly the counter-example
 when \textbf{Result} became \textbf{false}.\\
-Again, we had to be careful that the post-condition fully captured the meaning
+Again, we had to be careful that the postcondition fully captured the meaning
 of the \textbf{paly} feature. We believe we achieved this by establishing the
-correctness through the post-condition involving the result and by establishing
+correctness through the postcondition involving the result and by establishing
 that the parameter does not get modified.
 
 \subsection{Experience using AutoProof}
@@ -192,7 +192,7 @@ reason about sequences and it seems that AutoProof can handle them pretty well.
 \label{s:boogie}
 Boogie is an intermediate verification language (IVL), intended as a layer on which to build program verifiers for other languages\cite{boogiegithub}.\\
 It is also the name of a tool that accepts Boogie language as input and then generates verification conditions that are passed to an SMT solver such as Z3\cite{de2008z3}\cite{z3}.\\
-Initially, it has been developed by Microsoft Research but it is also open to other contributors on Github now.
+Initially, it has been developed by Microsoft Research but it is also open to other contributors on GitHub now.
 
 \subsection{Boogie implementation}
 
@@ -201,18 +201,18 @@ Even though Boogie's simplicity, both algorithms could be expressed well.
 While Boogie has powerful means to abstract complicated concepts, we only
 needed some very simple language structures of Boogie to express an array to be sorted.\\
 One particularly interesting design choice was to implement the partition step
-of the quicksort algorithms in such a way that it could be reused by the bucketsort algorithm.\\
-This simplified the implementation due to the additional code reuse and didn't
-make the verification or speficiation more complicated.
+of the quick sort algorithms in such a way that it could be reused by the bucket sort algorithm.\\
+This simplified the implementation due to the additional code reuse and did not
+make the verification or specification more complicated.
 
 \todo{Implement the sorting algorithm described in
-Section 3.2. Discuss your design choices, and how you modelled the algorithm using the
+Section 3.2. Discuss your design choices, and how you modeled the algorithm using the
 primitives of Boogie}
 
 \subsection{Boogie specification}
 In principle, our sort implementations have to fulfill two properties.\\
 Most importantly, the resulting array has to be sorted. This is pretty trivial and we used
-a simple boolean function to express this specification.
+a simple Boolean function to express this specification.
 \begin{lstlisting}
 function sorted(a: [int]int, lo, hi: int): bool
 {
@@ -225,7 +225,7 @@ function sorted(a: [int]int, lo, hi: int): bool
 }
 \end{lstlisting}
 Furthermore we need to make sure, that the sorted array is actually a valid
-permutation of the input array. Modelling this property turned out to be the most difficult part
+permutation of the input array. Modeling this property turned out to be the most difficult part
 of this project.\\
 The art is to find a way to express the permutation property in such a way that
 Boogie can handle it well and that it is also useful to work with for verification
@@ -258,7 +258,7 @@ it is also dangerous in general. The problem with axioms and assumptions as well
 in Boogie is that Boogie will assume them to be true unconditionally. Therefore,
 one has to be very careful not to introduce unsound axioms or assumptions.\\
 In a sense, one loses some of the certainty gained by using sound tools such as
-Boogie, because correctness aditionally relies on the correctness and soundness
+Boogie, because correctness additionally relies on the correctness and soundness
 of the axioms and assumptions.\\
 In this specific case it may be reasonable to use such trivial axioms. A more
 interesting approach is to use Boogie to proof these axioms automatically. Using our
@@ -312,9 +312,9 @@ procedure symmetry(a, b: [int]int)
 \end{lstlisting}
 
 And for transitivity one could use a similar approach as used for symmetry.\\
-However, we weren't able to verify the symmetry and transitivity property this way.
+However, we were not able to verify the symmetry and transitivity property this way.
 Furthermore, Boogie might not be the right tool for such an approach.
-Nevertheless, it was an interesting excurse into another aspect of verification.
+Nevertheless, it was an interesting excursion into another aspect of verification.
 \\
 \\
 Another idea which we explored was to look at the histograms of two arrays to
@@ -345,17 +345,17 @@ An incomplete specification can lead to the failure of the verification.
 Thus we often came across incomplete specifications.\\
 We learned that in addition to specifying what did get changed we also had to
 specify what did not get changed. A complicated example of this can be found in
-the \textbf{quicksort} and \textbf{partition} procedures.\\
+the \textbf{quick sort} and \textbf{partition} procedures.\\
 Both of these procedures preserve the property that if some values were previously
 bigger-equal than all values in a given range, those values will still be bigger-equal
 after the procedure call.\\
 While this is trivially obvious because both procedures only permute an array,
 it is not trivially obvious that this property is necessary to verify the
-\textbf{quicksort} and \textbf{bucketsort} implementations.
+\textbf{quick sort} and \textbf{bucket sort} implementations.
 
-\todo{Specify the complete behaviour of the sorting algorithm
+\todo{Specify the complete behavior of the sorting algorithm
 using the specification primitives of Boogie. Discuss your specification choices, in
-particular, how you modelled the “permutation” property for the resulting array.
+particular, how you modeled the “permutation” property for the resulting array.
 Describe any difficulties and how you overcame them. Contrast the specification
 language of Boogie with the specification language of AutoProof.}
 
@@ -397,21 +397,21 @@ Option a is better (and we used this in our implementation) because precondition
 \\\\
 \todo{requires send guet, well mer chan secherstelle, dass de call korrekt esch, aber glichzitig hämmer jetzt mega vell ad hoc code "if (lo <= hi) \{ call quicksort(lo, hi); \}", anstatt, dass mer de fall im quicksort abfangt ond ignoriert. Aber dene verlürt mer sicherheit.}
 \\\\
-\todo{loop invariants vs assertions, dass halt loop invariante wie pre-/post-conditions send (stoht vl au em language manual so ähnlech)}
+\todo{loop invariants vs assertions, dass halt loop invariante wie pre-/postconditions send (stoht vl au em language manual so ähnlech)}
 \\\\
 \todo{Verify your Boogie program using Boogie. Report any
 significant problems you encountered; for example, which procedures you could verify
 and which ones you could not. Describe if there were any aspects of the implementation
-or of the specification you had to change to make them easier to verify. Describe whichparts of the specification you could not verify, and what the limitations were that
+or of the specification you had to change to make them easier to verify. Describe which parts of the specification you could not verify, and what the limitations were that
 prevented you from doing it. Explain how you achieved modular verification.}
 
 Please note, that we also carefully annotated the attached code with many comments and explanations which exceed the scope of this report.
 
-\section{Comparison Autoproof \& Boogie}
+\section{Comparison AutoProof \& Boogie}
 \label{s:comparison}
-If we talk about Boogie as a verification language (not the tool) Autoproof is one layer above Boogie as it compiles into Boogie code.
+If we talk about Boogie as a verification language (not the tool) AutoProof is one layer above Boogie as it compiles into Boogie code.
 \\
-Autoproof works on a real programming language and can be applied to complex programs more easily. Especially if we would consider complex object structures being able to model the program in Eiffel is a lot easier than only using the rather primite structures of Boogie.
+AutoProof works on a real programming language and can be applied to complex programs more easily. Especially if we would consider complex object structures being able to model the program in Eiffel is a lot easier than only using the rather primitive structures of Boogie.
 \todo{was gits det gross, zsaege?}
 \\
 \todo{Particular effort should be made to contrast your experiences doing verification at the
